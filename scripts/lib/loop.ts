@@ -17,12 +17,36 @@ export const isStable = (a: Attempt) => a.gates.length >= 2 && a.gates.slice(-2)
 /** The failures this attempt ended with, as a comparable signature. */
 export const signature = (a: Attempt) => [...(a.gates.at(-1)?.newFailures ?? [])].sort().join('\n')
 
-// Step 2: write this. The rules, in order (scripts/lib/loop.test.ts checks each one):
+// The rules, in order (scripts/lib/loop.test.ts checks each one):
 //   no attempt yet → attempt · stable green (isStable) → done · the agent asked (needs_human) → escalate
 //   the same non-empty failures twice in a row (signature) → escalate · max attempts used → escalate · else → attempt
 // The agent's own verdict "ok" never counts: only the gate does.
 export function decide(attempts: Attempt[], max = MAX_ATTEMPTS): Decision {
-  void attempts
-  void max
-  throw new Error('decide() is not written yet: step 2 of the workshop (scripts/lib/loop.ts)')
+  const last = attempts.at(-1)
+  if (!last) return { kind: 'attempt' }
+  if (isStable(last)) return { kind: 'done' }
+  if (last.verdict === 'needs_human') {
+    return {
+      kind: 'escalate',
+      reason: 'the agent asked a question',
+      question: last.question ?? 'The agent needs a human decision but did not say which. What should it do?',
+    }
+  }
+  const prev = attempts.at(-2)
+  const sig = signature(last)
+  if (prev && sig !== '' && sig === signature(prev)) {
+    return {
+      kind: 'escalate',
+      reason: 'two attempts in a row failed the same way',
+      question: `The same failures remain after two attempts (${sig.split('\n').join(', ')}). How should they be fixed?`,
+    }
+  }
+  if (attempts.length >= max) {
+    return {
+      kind: 'escalate',
+      reason: `${max} attempts used`,
+      question: `${max} attempts did not reach a stable green gate. Change the task, fix it by hand, or reset and retry?`,
+    }
+  }
+  return { kind: 'attempt' }
 }

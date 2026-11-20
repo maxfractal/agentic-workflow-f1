@@ -41,24 +41,26 @@ Pick the mode from the prompt.
    on `main` on purpose. Do not fix it unless asked.
 4. If a failure is not yours and is not the Los Angeles test, report it; do not fix it.
 
-### Inside a script-owned loop (the prompt says so)
+### Inside the build loop (the prompt says it runs inside a script-owned loop)
 
 The script owns the loop, the attempt counter and the gate. So:
 
 - **Do not retry and do not count attempts.** Make your best change once.
-- Run `npm run format`, then `npm run -s gate -- --json`.
-- Fix **only the new failures** gate reports. Pre-existing ones (including the Los Angeles date test) are not yours.
+- Run `npm run format` **yourself, every time**. Loop agents run with the user's hooks off, so the Prettier
+  hook does not format your edits here, and an unformatted file is a `format:<file>` failure.
+- Then run `npm run -s gate -- --json` **instead of verify**. Only its `newFailures` are yours.
+  `preExisting` (including the Los Angeles date test when the baseline has it) and `fixed` are not.
   You may re-run gate after a fix to confirm it, but do not loop on it; the script will call you again if needed.
 - No git, no network, no tracker, board or merge scripts. Never set a human gate.
-- If a decision belongs to a human (unclear scope, a product or design choice, a conflict with the plan),
-  **do not ask in chat**. Return `needs_human` with exactly one question.
-- Answer with the JSON verdict the script asks for:
-  - `ok`: gate reports 0 new failures.
-  - `failed`: new failures remain; the summary names them.
+- **Never ask in text.** If a decision belongs to a human (unclear scope, a product or design choice, a
+  conflict with the plan), return `needs_human` with exactly one question in `question`.
+- **Your JSON verdict is the report.** Section 4 does not apply here; answer only with:
+  - `ok`: gate's `newFailures` is empty.
+  - `failed`: `newFailures` is not empty; the summary names them by id.
   - `needs_human`: plus `question` (one question).
-  `summary` is one line: what you changed and why.
+  `summary` is one line: what you changed and why. The script, not your verdict, decides what happens next.
 
-## 4. Report
+## 4. Report (standalone only)
 
 - Never say "verified", "done" or "passing" unless you ran the check in this session. Quote the last line
   of the command you ran (`verify` standalone, `gate` in a loop), plus any remaining failures by `id`.
