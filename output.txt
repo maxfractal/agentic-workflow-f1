@@ -1,0 +1,13 @@
+npm notice run baseline
+npm notice run tsx scripts/baseline.ts
+Preparing worktree (detached HEAD a780a3f)
+baseline: origin/main @ a780a3f
+npm notice run npx
+npm notice run 'tsx' /Users/xris/Documents/data/xrislab/jsnation/agentic-workflow-f1/scripts/verify.ts --cwd /var/folders/s8/n8xzp4s91ds7vhkh4v234wmh0000gn/T/baseline-NWWlfp --out /Users/xris/Documents/data/xrislab/jsnation/agentic-workflow-f1/.agent/baseline.json --json
+baseline: saved .agent/baseline.json
+npm notice run gate
+npm notice run tsx scripts/gate.ts
+npm notice run npx
+npm notice run 'tsx' scripts/verify.ts --json
+pre-existing unit:src/lib/dates.test.ts::formatRaceDate keeps the circuit calendar date for a viewer in Los Angeles
+gate: PASS (0 new, 1 pre-existing, 0 fixed, 86 passed)
